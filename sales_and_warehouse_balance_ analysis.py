@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime
 import os
 
 # === 1. Проверка файлов ===
@@ -16,7 +17,7 @@ except Exception as e:
     exit()
 
 df_ost = df_ost.dropna(how='all')
-df_ost.columns = ['Номенклатура', 'Остаток_в_магазине', 'Остаток_на_складе']
+df_ost.columns = ['', 'Номенклатура', 'Остаток_в_магазине', 'Остаток_на_складе']
 
 # Обработка чисел
 df_ost['Остаток_в_магазине'] = pd.to_numeric(df_ost['Остаток_в_магазине'], errors='coerce').fillna(0)
@@ -35,7 +36,7 @@ except Exception as e:
     exit()
 
 df_prod = df_prod.dropna(how='all')
-df_prod.columns = ['Номенклатура', 'Продано']
+df_prod.columns = ['', 'Номенклатура', 'Продано']
 df_prod['Продано'] = pd.to_numeric(df_prod['Продано'], errors='coerce').fillna(0)
 
 # Обрезаем номенклатуру
@@ -110,7 +111,8 @@ result.columns = [
 result = result.sort_values(by='Рекомендуется к заказу', ascending=False)
 
 # Сохраняем
-result.to_excel('аналитика.xlsx', index=False)
+current_date = datetime.now().strftime('%d-%m-%Y')
+result.to_excel(f'анализ продаж и остатков от {current_date}.xlsx', index=False)
 
 print(f"Готово! Сформировано {len(result)} позиций.")
-print("Результат сохранён в 'рекомендации_к_пополнению.xlsx'")
+print(f"Результат сохранён в 'анализ продаж и остатков от {current_date}.xlsx'")
