@@ -3,15 +3,14 @@ import openpyxl
 import numpy as np
 import time
 from datetime import datetime
+from convert_style import redactor
 
 start_time = time.perf_counter()
 current_date = datetime.now().strftime('%d-%m-%Y')
 file = 'test.xlsx'
 df = pd.read_excel(file, skiprows=10, engine='openpyxl')
 dlina = len(df)
-
-print(f'открыт файл с остатками на {dlina} позиций')
-
+print(f'открыт файл с отстатками на {dlina} позиций')
 names = ['Артиллерийская', 'Златоуст', 'Златоуст ТРК Тарелка', 'Копейск', 'Завенягина', 'Маркса', 'ТК ДжазМолл',
          'Миасс', 'Миасс Макеева', 'Гагарина', 'Комсомольский', 'Молодогвардейцев', 'КС Теплотех', 'Ленина',
          'Сталеваров', 'Худякова', 'Склад']
@@ -72,6 +71,7 @@ for idx in df.index:
 
 result = df[(df['ordered'] == True)]
 result[['Номенклатура', 'Склад']].to_excel(f'заказы со склада от {current_date}.xlsx', index=False)
+redactor(f'заказы со склада от {current_date}.xlsx')
 print(f"создан файл 'заказы со склада от {current_date}.xlsx' найдено {len(result)} позиций")
 
 df = df[(df['ordered'] == False)]
@@ -104,6 +104,7 @@ for sklad in prioritet[1:]:
     # Проверяем, есть ли данные для этого склада
     if not otchet.empty:
         otchet[['Номенклатура', sklad]].to_excel(f'заказы {sklad} от {current_date}.xlsx', index=False)
+        redactor(f'заказы {sklad} от {current_date}.xlsx')
         print(f"Создан файл 'заказы {sklad} от {current_date}.xlsx' найдено {len(otchet)} позиций")
     else:
         print(f"Нет данных для склада {sklad} (файл не создан)")
