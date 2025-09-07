@@ -60,3 +60,39 @@ def redactor(file):
     # 4. Сохранение файла
     wb.save(file)
     print("Файл успешно отредактирован!")
+
+def redactor_ws(ws):
+    """
+    Редактирует лист Excel, применяя форматирование
+    ws - объект worksheet openpyxl
+    """
+    # Задание размера колонок
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[column_letter].width = adjusted_width
+
+    # Форматирование заголовков
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+
+    for cell in ws[1]:  # Первая строка - заголовки
+        cell.font = header_font
+        cell.fill = header_fill
+
+    # Чередование цветов строк
+    for row in range(2, ws.max_row + 1):
+        if row % 2 == 0:
+            fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+        else:
+            fill = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+
+        for col in range(1, ws.max_column + 1):
+            ws.cell(row=row, column=col).fill = fill

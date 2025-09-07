@@ -1,9 +1,10 @@
 import pandas as pd
-import openpyxl
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 import numpy as np
 import time
 from datetime import datetime
-from convert_style import redactor
+from convert_style import redactor, redactor_ws
 
 start_time = time.perf_counter()
 current_date = datetime.now().strftime('%d-%m-%Y')
@@ -97,17 +98,33 @@ for idx in df.index:  # Перебираем строки DataFrame
 
 print(f'обработка завершена, приступаем к созданию отчетов')
 
-for sklad in prioritet[1:]:
+# Создаем новый workbook
+wb = Workbook()
+wb.remove(wb.active)
+
+# Создаем листы для каждого склада
+for sklad in prioritet:
     # Фильтруем строки, где этот склад имеет значение 1
     otchet = df[(df[sklad] == 1)]
 
     # Проверяем, есть ли данные для этого склада
     if not otchet.empty:
-        otchet[['Номенклатура', sklad]].to_excel(f'заказы {sklad} от {current_date}.xlsx', index=False)
-        redactor(f'заказы {sklad} от {current_date}.xlsx')
-        print(f"Создан файл 'заказы {sklad} от {current_date}.xlsx' найдено {len(otchet)} позиций")
+        # Создаем новый лист с названием склада
+        ws = wb.create_sheet(title=sklad)
+
+        # Добавляем данные
+        for r in dataframe_to_rows(otchet[['Номенклатура', sklad]], index=False, header=True):
+            ws.append(r)
+
+        redactor_ws(ws)
+        print(f"Создан лист '{sklad}' найдено {len(otchet)} позиций")
     else:
-        print(f"Нет данных для склада {sklad} (файл не создан)")
+        print(f"Нет данных для склада {sklad}")
+
+# Сохраняем файл
+filename = f'заказы с магазинов от {current_date}.xlsx'
+wb.save(filename)
+print(f"Создан файл '{filename}' с {len(wb.sheetnames)} листами")
 
 end_time = time.perf_counter()
 execution_time = end_time - start_time
