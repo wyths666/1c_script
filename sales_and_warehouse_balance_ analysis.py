@@ -3,6 +3,7 @@ from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 import numpy as np
 import time
+import re
 from datetime import datetime
 from convert_style import redactor, redactor_ws
 
@@ -20,26 +21,34 @@ df = df.drop('', axis=1)
 for i in names:
     df[i] = pd.to_numeric(df[i], errors='coerce').fillna(0)
 
-df['Номенклатура'] = df['Номенклатура'].apply(
-    lambda x: x[:-4] if isinstance(x, str) and len(x) > 4 else x)
+def clean_nomenclature(x):
+    if isinstance(x, str):
+        return re.sub(r', .*', '', x)
+    return x
+
+df['Номенклатура'] = df['Номенклатура'].apply(clean_nomenclature)
 
 file_2 = 'sales.xlsx'
-df2 = pd.read_excel(file_2, skiprows=8, engine='openpyxl')
-df2.columns = ['', 'Номенклатура', 'Продажи']
-print(f'открыт файл с продажами')
+try:
+    df2 = pd.read_excel(file_2, skiprows=8, engine='openpyxl')
+    print(f'открыт файл с продажами')
+    df2.columns = ['', 'Номенклатура', 'Продажи']
+    df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
+    df2 = df2.drop('', axis=1)
+except FileNotFoundError:
+    df2 = pd.DataFrame(columns=['Номенклатура', 'Продажи'])
+    print(f'отсутствует файл с продажами')
 
-df2['Номенклатура'] = df2['Номенклатура'].apply(
-    lambda x: x[:-4] if isinstance(x, str) and len(x) > 4 else x
-)
-df2 = df2.drop('', axis=1)
+
+
 
 df = pd.merge(df, df2, on='Номенклатура', how='left')
 df['Продажи'] = pd.to_numeric(df['Продажи'], errors='coerce').fillna(0)
 
-prioritet = ['Склад', 'Завенягина', 'ТК ДжазМолл', 'Миасс Макеева', 'Миасс', 'Златоуст ТРК Тарелка', 'Златоуст',
+prioritet = ['Завенягина', 'ТК ДжазМолл', 'Миасс Макеева', 'Миасс', 'Златоуст ТРК Тарелка', 'Златоуст',
              'Артиллерийская', 'Гагарина', 'Копейск', 'КС Теплотех', 'Сталеваров', 'Худякова', 'Комсомольский',
              'Молодогвардейцев', 'Ленина']
-df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса"] + prioritet)
+df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса", 'Склад'] + prioritet)
 
 conditions = [
     df['Продажи'] - df['Маркса'] > 0,
@@ -77,7 +86,7 @@ print(f"создан файл 'заказы со склада от {current_date
 
 df = df[(df['ordered'] == False)]
 
-# Список складов в порядке приоритета
+
 
 
 for idx in df.index:  # Перебираем строки DataFrame
