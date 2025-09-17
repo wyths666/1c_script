@@ -18,12 +18,11 @@ names = ['Артиллерийская', 'Златоуст', 'Златоуст �
          'Сталеваров', 'Худякова', 'Склад']
 df.columns = ['', 'Номенклатура'] + names
 df = df.drop('', axis=1)
-for i in names:
-    df[i] = pd.to_numeric(df[i], errors='coerce').fillna(0)
+df.iloc[:, 1:] = df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce').fillna(0) # заменяем Nan на 0
 
 def clean_nomenclature(x):
     if isinstance(x, str):
-        return re.sub(r', .*', '', x)
+        return re.sub(r', [^,]*$', '', x)
     return x
 
 df['Номенклатура'] = df['Номенклатура'].apply(clean_nomenclature)
