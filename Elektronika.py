@@ -12,10 +12,8 @@ current_date = datetime.now().strftime('%d-%m-%Y')
 file = 'test.xlsx'
 df = pd.read_excel(file, skiprows=10, engine='openpyxl')
 dlina = len(df)
-print(f'открыт файл с отстатками на {dlina} позиций')
-names = ['Артиллерийская', 'Златоуст', 'Златоуст ТРК Тарелка', 'Копейск', 'Завенягина', 'Маркса', 'ТК ДжазМолл',
-         'Миасс', 'Миасс Макеева', 'Гагарина', 'Комсомольский', 'Молодогвардейцев', 'КС Теплотех', 'Ленина',
-         'Сталеваров', 'Худякова', 'Склад']
+print(f'открыт файл с остатками на {dlina} позиций')
+names = ['Завенягина', 'Маркса', 'ТК ДжазМолл', 'Ленина', 'Склад']
 df.columns = ['', 'Номенклатура'] + names
 df = df.drop('', axis=1)
 df.iloc[:, 1:] = df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce').fillna(0) # заменяем Nan на 0
@@ -25,7 +23,7 @@ def clean_nomenclature(x):
         return re.sub(r', [^,]*$', '', x)
     return x
 
-df['Номенклатура'] = df['Номенклатура'].apply(clean_nomenclature)
+#df['Номенклатура'] = df['Номенклатура'].apply(clean_nomenclature)
 
 file_2 = 'sales.xlsx'
 try:
@@ -44,9 +42,7 @@ except FileNotFoundError:
 df = pd.merge(df, df2, on='Номенклатура', how='left')
 df['Продажи'] = pd.to_numeric(df['Продажи'], errors='coerce').fillna(0)
 
-prioritet = ['Завенягина', 'ТК ДжазМолл', 'Миасс Макеева', 'Миасс', 'Златоуст ТРК Тарелка', 'Златоуст',
-             'Артиллерийская', 'Гагарина', 'Копейск', 'КС Теплотех', 'Сталеваров', 'Худякова', 'Комсомольский',
-             'Молодогвардейцев', 'Ленина']
+prioritet = ['Ленина', 'Завенягина', 'ТК ДжазМолл']
 df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса", 'Склад'] + prioritet)
 
 conditions = [

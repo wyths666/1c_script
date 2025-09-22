@@ -13,7 +13,9 @@ file = 'test.xlsx'
 df = pd.read_excel(file, skiprows=10, engine='openpyxl')
 dlina = len(df)
 print(f'открыт файл с отстатками на {dlina} позиций')
-names = ['Завенягина', 'Маркса', 'ТК ДжазМолл']
+names = ['Артиллерийская', 'Златоуст', 'Златоуст ТРК Тарелка', 'Копейск', 'Завенягина', 'Маркса', 'ТК ДжазМолл',
+         'Миасс', 'Миасс Макеева', 'Гагарина', 'Комсомольский', 'Молодогвардейцев', 'КС Теплотех', 'Ленина',
+         'Сталеваров', 'Худякова', 'Склад']
 df.columns = ['', 'Номенклатура'] + names
 df = df.drop('', axis=1)
 df.iloc[:, 1:] = df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce').fillna(0) # заменяем Nan на 0
@@ -42,8 +44,10 @@ except FileNotFoundError:
 df = pd.merge(df, df2, on='Номенклатура', how='left')
 df['Продажи'] = pd.to_numeric(df['Продажи'], errors='coerce').fillna(0)
 
-prioritet = ['Завенягина', 'ТК ДжазМолл']
-df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса"] + prioritet)
+prioritet = ['Завенягина', 'ТК ДжазМолл', 'Миасс Макеева', 'Миасс', 'Златоуст ТРК Тарелка', 'Златоуст',
+             'Артиллерийская', 'Гагарина', 'Копейск', 'КС Теплотех', 'Сталеваров', 'Худякова', 'Комсомольский',
+             'Молодогвардейцев', 'Ленина']
+df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса", 'Склад'] + prioritet)
 
 conditions = [
     df['Продажи'] - df['Маркса'] > 0,
@@ -63,6 +67,26 @@ df['ordered'] = False
 df = df[(df['Рекомендовано к заказу'] > 0)]
 
 print(f'Сформирована рекомендация к заказу')
+
+print(f'обработка остатков на складе')
+
+for idx in df.index:
+
+    if df.loc[idx, "Склад"] >= df.loc[idx, "Рекомендовано к заказу"]:
+        df.loc[idx, "Склад"] = df.loc[idx, "Рекомендовано к заказу"]
+        df.loc[idx, 'ordered'] = True
+    elif df.loc[idx, "Склад"] > 0:
+        df.loc[idx, 'ordered'] = True
+
+result = df[(df['ordered'] == True)]
+result[['Номенклатура', 'Склад']].to_excel(f'заказы со склада от {current_date}.xlsx', index=False)
+redactor(f'заказы со склада от {current_date}.xlsx')
+print(f"создан файл 'заказы со склада от {current_date}.xlsx' найдено {len(result)} позиций")
+
+df = df[(df['ordered'] == False)]
+
+
+
 
 for idx in df.index:  # Перебираем строки DataFrame
     # Ищем первый доступный склад в порядке приоритета
