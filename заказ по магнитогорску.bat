@@ -1,3 +1,3 @@
 @echo off
-python "C:\my project\1c_script\from_mgn.py"
+python -u "C:\my project\1c_script\from_mgn.py"
 pause
