@@ -1,2 +1,18 @@
-/заказы с магазинов от 11-09-2025.xlsx
-/заказы со склада от 11-09-2025.xlsx
+# Environments
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.xlsx
+*.xls
+*.csv
+converted/
+temp/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+

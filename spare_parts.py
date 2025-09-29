@@ -5,15 +5,22 @@ import numpy as np
 import time
 import re
 from datetime import datetime
-from convert_style import redactor, redactor_ws
+from utils.convert_style import redactor, redactor_ws
+from utils.recover_files import convert_with_excel
 
 start_time = time.perf_counter()
 current_date = datetime.now().strftime('%d-%m-%Y')
 file = 'test.xlsx'
-df = pd.read_excel(file, skiprows=10, engine='openpyxl')
+try:
+    df = pd.read_excel(file, skiprows=10, engine='openpyxl')
+except Exception as e:
+    convert_with_excel(file)
+    df = pd.read_excel(file, skiprows=10, engine='openpyxl')
 dlina = len(df)
-print(f'открыт файл с остатками на {dlina} позиций')
-names = ['Завенягина', 'Маркса', 'ТК ДжазМолл', 'Ленина', 'Склад']
+print(f'открыт файл с отстатками на {dlina} позиций')
+names = ['Артиллерийская', 'Златоуст', 'Златоуст ТРК Тарелка', 'Копейск', 'Завенягина', 'Маркса', 'ТК ДжазМолл',
+         'Миасс', 'Миасс Макеева', 'Гагарина', 'Комсомольский', 'Молодогвардейцев', 'КС Теплотех', 'Ленина',
+         'Сталеваров', 'Худякова', 'Склад']
 df.columns = ['', 'Номенклатура'] + names
 df = df.drop('', axis=1)
 df.iloc[:, 1:] = df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce').fillna(0) # заменяем Nan на 0
@@ -35,6 +42,13 @@ try:
 except FileNotFoundError:
     df2 = pd.DataFrame(columns=['Номенклатура', 'Продажи'])
     print(f'отсутствует файл с продажами')
+except Exception as e:
+    convert_with_excel(file_2)
+    df2 = pd.read_excel(file_2, skiprows=10, engine='openpyxl')
+    print(f'открыт файл с продажами')
+    df2.columns = ['', 'Номенклатура', 'Продажи']
+    df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
+    df2 = df2.drop('', axis=1)
 
 
 
@@ -42,7 +56,9 @@ except FileNotFoundError:
 df = pd.merge(df, df2, on='Номенклатура', how='left')
 df['Продажи'] = pd.to_numeric(df['Продажи'], errors='coerce').fillna(0)
 
-prioritet = ['Ленина', 'Завенягина', 'ТК ДжазМолл']
+prioritet = ['Завенягина', 'ТК ДжазМолл', 'Миасс Макеева', 'Миасс', 'Златоуст ТРК Тарелка', 'Златоуст',
+             'Артиллерийская', 'Гагарина', 'Копейск', 'КС Теплотех', 'Сталеваров', 'Худякова', 'Комсомольский',
+             'Молодогвардейцев', 'Ленина']
 df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса", 'Склад'] + prioritet)
 
 conditions = [

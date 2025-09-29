@@ -5,17 +5,20 @@ import numpy as np
 import time
 import re
 from datetime import datetime
-from convert_style import redactor, redactor_ws
+from utils.convert_style import redactor_ws
+from utils.recover_files import convert_with_excel
 
 start_time = time.perf_counter()
 current_date = datetime.now().strftime('%d-%m-%Y')
 file = 'test.xlsx'
-df = pd.read_excel(file, skiprows=10, engine='openpyxl')
+try:
+    df = pd.read_excel(file, skiprows=10, engine='openpyxl')
+except Exception as e:
+    convert_with_excel(file)
+    df = pd.read_excel(file, skiprows=10, engine='openpyxl')
 dlina = len(df)
 print(f'открыт файл с отстатками на {dlina} позиций')
-names = ['Артиллерийская', 'Златоуст', 'Златоуст ТРК Тарелка', 'Копейск', 'Завенягина', 'Маркса', 'ТК ДжазМолл',
-         'Миасс', 'Миасс Макеева', 'Гагарина', 'Комсомольский', 'Молодогвардейцев', 'КС Теплотех', 'Ленина',
-         'Сталеваров', 'Худякова', 'Склад']
+names = ['Завенягина', 'Маркса', 'ТК ДжазМолл']
 df.columns = ['', 'Номенклатура'] + names
 df = df.drop('', axis=1)
 df.iloc[:, 1:] = df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce').fillna(0) # заменяем Nan на 0
@@ -37,6 +40,13 @@ try:
 except FileNotFoundError:
     df2 = pd.DataFrame(columns=['Номенклатура', 'Продажи'])
     print(f'отсутствует файл с продажами')
+except Exception as e:
+    convert_with_excel(file_2)
+    df2 = pd.read_excel(file_2, skiprows=10, engine='openpyxl')
+    print(f'открыт файл с продажами')
+    df2.columns = ['', 'Номенклатура', 'Продажи']
+    df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
+    df2 = df2.drop('', axis=1)
 
 
 
@@ -44,10 +54,8 @@ except FileNotFoundError:
 df = pd.merge(df, df2, on='Номенклатура', how='left')
 df['Продажи'] = pd.to_numeric(df['Продажи'], errors='coerce').fillna(0)
 
-prioritet = ['Завенягина', 'ТК ДжазМолл', 'Миасс Макеева', 'Миасс', 'Златоуст ТРК Тарелка', 'Златоуст',
-             'Артиллерийская', 'Гагарина', 'Копейск', 'КС Теплотех', 'Сталеваров', 'Худякова', 'Комсомольский',
-             'Молодогвардейцев', 'Ленина']
-df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса", 'Склад'] + prioritet)
+prioritet = ['Завенягина', 'ТК ДжазМолл']
+df = df.reindex(columns=['Номенклатура', 'Продажи', "Маркса"] + prioritet)
 
 conditions = [
     df['Продажи'] - df['Маркса'] > 0,
@@ -67,26 +75,6 @@ df['ordered'] = False
 df = df[(df['Рекомендовано к заказу'] > 0)]
 
 print(f'Сформирована рекомендация к заказу')
-
-print(f'обработка остатков на складе')
-
-for idx in df.index:
-
-    if df.loc[idx, "Склад"] >= df.loc[idx, "Рекомендовано к заказу"]:
-        df.loc[idx, "Склад"] = df.loc[idx, "Рекомендовано к заказу"]
-        df.loc[idx, 'ordered'] = True
-    elif df.loc[idx, "Склад"] > 0:
-        df.loc[idx, 'ordered'] = True
-
-result = df[(df['ordered'] == True)]
-result[['Номенклатура', 'Склад']].to_excel(f'заказы со склада от {current_date}.xlsx', index=False)
-redactor(f'заказы со склада от {current_date}.xlsx')
-print(f"создан файл 'заказы со склада от {current_date}.xlsx' найдено {len(result)} позиций")
-
-df = df[(df['ordered'] == False)]
-
-
-
 
 for idx in df.index:  # Перебираем строки DataFrame
     # Ищем первый доступный склад в порядке приоритета
