@@ -83,17 +83,17 @@ print(f'Сформирована рекомендация к заказу')
 print(f'обработка остатков на складе')
 
 for idx in df.index:
-
     if df.loc[idx, "Склад"] >= df.loc[idx, "Рекомендовано к заказу"]:
-        df.loc[idx, "Склад"] = df.loc[idx, "Рекомендовано к заказу"]
         df.loc[idx, 'ordered'] = True
-    elif df.loc[idx, "Склад"] > 0:
+    elif 0 < df.loc[idx, "Склад"] < df.loc[idx, "Рекомендовано к заказу"]:
+        df.loc[idx, "Рекомендовано к заказу"] = df.loc[idx, "Склад"]
         df.loc[idx, 'ordered'] = True
+
 
 result = df[(df['ordered'] == True)]
-result[['Номенклатура', 'Склад']].to_excel(f'заказы со склада от {current_date}.xlsx', index=False)
-redactor(f'заказы со склада от {current_date}.xlsx')
-print(f"создан файл 'заказы со склада от {current_date}.xlsx' найдено {len(result)} позиций")
+result[['Номенклатура', "Рекомендовано к заказу", 'Маркса', 'Склад']].to_excel(f'заказы со склада (запчасти) от {current_date}.xlsx', index=False)
+redactor(f'заказы со склада (запчасти) от {current_date}.xlsx')
+print(f"создан файл 'заказы со склада (запчасти) от {current_date}.xlsx' найдено {len(result)} позиций")
 
 df = df[(df['ordered'] == False)]
 
@@ -108,7 +108,7 @@ for idx in df.index:  # Перебираем строки DataFrame
 
         if df.loc[idx, warehouse] > 1:  # Проверяем наличие товара
             # Устанавливаем 1 на найденном складе
-            df.loc[idx, warehouse] = 1
+            df.loc[idx, "Рекомендовано к заказу"] = 1
             # Устанавливаем 0 на всех остальных складах (после найденного)
             for j in range(i + 1, len(prioritet)):
                 df.loc[idx, prioritet[j]] = 0
@@ -125,7 +125,7 @@ wb.remove(wb.active)
 # Создаем листы для каждого склада
 for sklad in prioritet:
     # Фильтруем строки, где этот склад имеет значение 1
-    otchet = df[(df[sklad] == 1)]
+    otchet = df[(df[sklad] > 1)]
 
     # Проверяем, есть ли данные для этого склада
     if not otchet.empty:
@@ -133,7 +133,7 @@ for sklad in prioritet:
         ws = wb.create_sheet(title=sklad)
 
         # Добавляем данные
-        for r in dataframe_to_rows(otchet[['Номенклатура', sklad]], index=False, header=True):
+        for r in dataframe_to_rows(otchet[['Номенклатура', "Рекомендовано к заказу", "Маркса",  sklad]], index=False, header=True):
             ws.append(r)
 
         redactor_ws(ws)
@@ -142,7 +142,7 @@ for sklad in prioritet:
         print(f"Нет данных для склада {sklad}")
 
 # Сохраняем файл
-filename = f'заказы с магазинов от {current_date}.xlsx'
+filename = f'заказы запчастей с магазинов от {current_date}.xlsx'
 wb.save(filename)
 print(f"Создан файл '{filename}' с {len(wb.sheetnames)} листами")
 
