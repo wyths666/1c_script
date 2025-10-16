@@ -96,8 +96,8 @@ else:
     print("Нет доступных позиций к заказу со склада")
 
 df = df[(df['ordered'] == False)]
-
-
+df.insert(2, 'Заказ из магазина', 0)
+df['ordered'] = 0
 
 
 for idx in df.index:  # Перебираем строки DataFrame
@@ -106,12 +106,13 @@ for idx in df.index:  # Перебираем строки DataFrame
     for i in range(len(prioritet)):  # i - индекс в списке складов
         warehouse = prioritet[i]  # Получаем название склада
 
-        if df.loc[idx, warehouse] > 1:  # Проверяем наличие товара
+        if df.loc[idx, warehouse] > 1 and df.loc[idx, "Рекомендовано к заказу"] > df.loc[idx, "ordered"]:  # Проверяем наличие товара
             # Устанавливаем 1 на найденном складе
-            df.loc[idx, "Рекомендовано к заказу"] = 1
+            df.loc[idx, "ordered"] += 1
+            df.loc[idx, "Заказ из магазина"] = 1
             # Устанавливаем 0 на всех остальных складах (после найденного)
-            for j in range(i + 1, len(prioritet)):
-                df.loc[idx, prioritet[j]] = 0
+            # for j in range(i + 1, len(prioritet)):
+            #     df.loc[idx, prioritet[j]] = 0
 
         else:
             df.loc[idx, warehouse] = 0
@@ -125,7 +126,7 @@ wb.remove(wb.active)
 # Создаем листы для каждого склада
 for sklad in prioritet:
     # Фильтруем строки, где этот склад имеет значение 1
-    otchet = df[(df[sklad] == 1)]
+    otchet = df[(df[sklad] > 1)]
 
     # Проверяем, есть ли данные для этого склада
     if not otchet.empty:
@@ -133,7 +134,7 @@ for sklad in prioritet:
         ws = wb.create_sheet(title=sklad)
 
         # Добавляем данные
-        for r in dataframe_to_rows(otchet[['Номенклатура', "Рекомендовано к заказу", "Маркса", sklad]], index=False,
+        for r in dataframe_to_rows(otchet[['Номенклатура',"Заказ из магазина", "Рекомендовано к заказу", "Маркса",  sklad, "ordered"]], index=False,
                                    header=True):
             ws.append(r)
 
@@ -146,6 +147,12 @@ for sklad in prioritet:
 filename = f'заказы с магазинов от {current_date}.xlsx'
 wb.save(filename)
 print(f"Создан файл '{filename}' с {len(wb.sheetnames)} листами")
+
+df = df[(df['ordered'] < df["Рекомендовано к заказу"])]
+df = df[(df['Продажи'] > 0)]
+df[['Номенклатура', 'Продажи', 'ordered']].to_excel(f'дефицит от {current_date}.xlsx', index=False)
+redactor(f'дефицит от {current_date}.xlsx')
+print(f'Cоздан файл - дефицит от {current_date}.xlsx')
 
 end_time = time.perf_counter()
 execution_time = end_time - start_time

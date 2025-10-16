@@ -70,7 +70,9 @@ choices = [
 ]
 
 df.insert(2, 'Рекомендовано к заказу', np.select(conditions, choices, 0))
-df['ordered'] = False
+
+df['ordered'] = 0
+df.insert(2, 'Заказ из магазина', 0)
 
 df = df[(df['Рекомендовано к заказу'] > 0)]
 
@@ -82,12 +84,13 @@ for idx in df.index:  # Перебираем строки DataFrame
     for i in range(len(prioritet)):  # i - индекс в списке складов
         warehouse = prioritet[i]  # Получаем название склада
 
-        if df.loc[idx, warehouse] > 1:  # Проверяем наличие товара
+        if df.loc[idx, warehouse] > 1 and df.loc[idx, "Рекомендовано к заказу"] > df.loc[idx, "ordered"]:  # Проверяем наличие товара
             # Устанавливаем 1 на найденном складе
-            df.loc[idx, warehouse] = 1
+            df.loc[idx, "ordered"] += 1
+            df.loc[idx, "Заказ из магазина"] = 1
             # Устанавливаем 0 на всех остальных складах (после найденного)
-            for j in range(i + 1, len(prioritet)):
-                df.loc[idx, prioritet[j]] = 0
+            # for j in range(i + 1, len(prioritet)):
+            #     df.loc[idx, prioritet[j]] = 0
 
         else:
             df.loc[idx, warehouse] = 0
@@ -101,7 +104,7 @@ wb.remove(wb.active)
 # Создаем листы для каждого склада
 for sklad in prioritet:
     # Фильтруем строки, где этот склад имеет значение 1
-    otchet = df[(df[sklad] == 1)]
+    otchet = df[(df[sklad] > 1)]
 
     # Проверяем, есть ли данные для этого склада
     if not otchet.empty:
@@ -109,7 +112,7 @@ for sklad in prioritet:
         ws = wb.create_sheet(title=sklad)
 
         # Добавляем данные
-        for r in dataframe_to_rows(otchet[['Номенклатура', sklad]], index=False, header=True):
+        for r in dataframe_to_rows(otchet[['Номенклатура',"Заказ из магазина", "Рекомендовано к заказу", "Маркса",  sklad, "ordered"]], index=False, header=True):
             ws.append(r)
 
         redactor_ws(ws)
@@ -118,7 +121,7 @@ for sklad in prioritet:
         print(f"Нет данных для склада {sklad}")
 
 # Сохраняем файл
-filename = f'заказы с магазинов от {current_date}.xlsx'
+filename = f'заказы с магнитогорска от {current_date}.xlsx'
 wb.save(filename)
 print(f"Создан файл '{filename}' с {len(wb.sheetnames)} листами")
 
