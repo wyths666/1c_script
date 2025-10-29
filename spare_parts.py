@@ -27,7 +27,7 @@ df.iloc[:, 1:] = df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce').fillna(0) 
 
 def clean_nomenclature(x):
     if isinstance(x, str):
-        return re.sub(r', [^,]*$', '', x)
+        return re.sub(r', [^,]*$', '', x).strip()
     return x
 
 #df['Номенклатура'] = df['Номенклатура'].apply(clean_nomenclature)
@@ -37,7 +37,7 @@ try:
     df2 = pd.read_excel(file_2, skiprows=8, engine='openpyxl')
     print(f'открыт файл с продажами')
     df2.columns = ['', 'Номенклатура', 'Продажи']
-    df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
+    #df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
     df2 = df2.drop('', axis=1)
 except FileNotFoundError:
     df2 = pd.DataFrame(columns=['Номенклатура', 'Продажи'])
@@ -47,9 +47,8 @@ except Exception as e:
     df2 = pd.read_excel(file_2, skiprows=10, engine='openpyxl')
     print(f'открыт файл с продажами')
     df2.columns = ['', 'Номенклатура', 'Продажи']
-    df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
+    #df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
     df2 = df2.drop('', axis=1)
-
 
 
 
@@ -75,9 +74,7 @@ choices = [
 
 df.insert(2, 'Рекомендовано к заказу', np.select(conditions, choices, 0))
 df['ordered'] = False
-
 df = df[(df['Рекомендовано к заказу'] > 0)]
-
 print(f'Сформирована рекомендация к заказу')
 
 print(f'обработка остатков на складе')

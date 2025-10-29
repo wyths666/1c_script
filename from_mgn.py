@@ -35,7 +35,7 @@ try:
     df2 = pd.read_excel(file_2, skiprows=8, engine='openpyxl')
     print(f'открыт файл с продажами')
     df2.columns = ['', 'Номенклатура', 'Продажи']
-    df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
+    #df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
     df2 = df2.drop('', axis=1)
 except FileNotFoundError:
     df2 = pd.DataFrame(columns=['Номенклатура', 'Продажи'])
@@ -45,7 +45,7 @@ except Exception as e:
     df2 = pd.read_excel(file_2, skiprows=10, engine='openpyxl')
     print(f'открыт файл с продажами')
     df2.columns = ['', 'Номенклатура', 'Продажи']
-    df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
+    #df2['Номенклатура'] = df2['Номенклатура'].apply(clean_nomenclature)
     df2 = df2.drop('', axis=1)
 
 
