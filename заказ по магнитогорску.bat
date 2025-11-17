@@ -1,3 +1,3 @@
 @echo off
-python -u "C:\my project\1c_script\from_mgn.py"
+".venv\Scripts\python.exe" -u "C:\myprojects\1c_scripts\from_mgn.py"
 pause

@@ -78,22 +78,21 @@ df = df[(df['Рекомендовано к заказу'] > 0)]
 
 print(f'Сформирована рекомендация к заказу')
 
-for idx in df.index:  # Перебираем строки DataFrame
-    # Ищем первый доступный склад в порядке приоритета
-
-    for i in range(len(prioritet)):  # i - индекс в списке складов
-        warehouse = prioritet[i]  # Получаем название склада
-
-        if df.loc[idx, warehouse] > 1 and df.loc[idx, "Рекомендовано к заказу"] > df.loc[idx, "ordered"]:  # Проверяем наличие товара
-            # Устанавливаем 1 на найденном складе
-            df.loc[idx, "ordered"] += 1
-            df.loc[idx, "Заказ из магазина"] = 1
-            # Устанавливаем 0 на всех остальных складах (после найденного)
-            # for j in range(i + 1, len(prioritet)):
-            #     df.loc[idx, prioritet[j]] = 0
-
+for idx in df.index:
+    for i in range(len(prioritet)):
+        warehouse = prioritet[i]
+        if df.loc[idx, 'Маркса'] > 0:
+            if df.loc[idx, warehouse] > 2 and df.loc[idx, "Рекомендовано к заказу"] > df.loc[idx, "ordered"] and df.loc[idx, warehouse] - df.loc[idx, 'Маркса'] >= 2:
+                df.loc[idx, "ordered"] += 1
+                df.loc[idx, "Заказ из магазина"] = 1
+            else:
+                df.loc[idx, warehouse] = 0
         else:
-            df.loc[idx, warehouse] = 0
+            if df.loc[idx, warehouse] > 1 and df.loc[idx, "Рекомендовано к заказу"] > df.loc[idx, "ordered"]:
+                df.loc[idx, "ordered"] += 1
+                df.loc[idx, "Заказ из магазина"] = 1
+            else:
+                df.loc[idx, warehouse] = 0
 
 print(f'обработка завершена, приступаем к созданию отчетов')
 
