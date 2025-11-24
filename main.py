@@ -5,6 +5,7 @@ from utils.instrument import instruments
 from utils.pults import pults
 from utils.radio import radio
 from utils.spare_parts import zip_otchet
+from utils.batteries import batteries
 
 
 async def run_module_async(module_func, module_name):
@@ -35,7 +36,8 @@ async def main():
         run_module_async(instruments, "Инструменты"),
         run_module_async(pults, "Пульты"),
         run_module_async(radio, "Радио"),
-        run_module_async(zip_otchet, "Запчасти")
+        run_module_async(zip_otchet, "Запчасти"),
+        run_module_async(batteries, "Батарейки")
     ]
 
     # Ждем завершения всех задач
