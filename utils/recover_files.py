@@ -2,7 +2,7 @@ import win32com.client as win32
 import os
 
 
-def convert_with_excel(input_path, output_path=None):
+async def convert_with_excel(input_path, output_path=None):
     """
     Конвертирует файл через автоматизацию Excel
     (требует установленного Microsoft Excel)

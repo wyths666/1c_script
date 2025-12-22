@@ -23,7 +23,7 @@ async def pults():
     try:
         df = pd.read_excel(file, skiprows=10, engine='openpyxl')
     except Exception as e:
-        convert_with_excel(file, file)
+        await convert_with_excel(file, file)
         df = pd.read_excel(file, skiprows=10, engine='openpyxl')
     dlina = len(df)
     names = ['Завенягина', 'Маркса', 'ТК ДжазМолл', 'Ленина', 'Склад']
@@ -46,7 +46,7 @@ async def pults():
         df2 = pd.DataFrame(columns=['Номенклатура', 'Продажи'])
         print(f'отсутствует файл с продажами')
     except Exception as e:
-        convert_with_excel(file_2, file_2)
+        await convert_with_excel(file_2, file_2)
         df2 = pd.read_excel(file_2, skiprows=10, engine='openpyxl')
         print(f'открыт файл с продажами')
         df2.columns = ['', 'Номенклатура', 'Продажи']
