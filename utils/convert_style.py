@@ -96,3 +96,5 @@ def redactor_ws(ws):
 
         for col in range(1, ws.max_column + 1):
             ws.cell(row=row, column=col).fill = fill
+
+redactor('not_sold_products.xlsx')

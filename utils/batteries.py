@@ -166,4 +166,4 @@ async def batteries():
 
 
 if __name__ == "__main__":
-    asyncio.run(instruments())
+    asyncio.run(batteries())
